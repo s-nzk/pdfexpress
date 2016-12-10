@@ -1,0 +1,23 @@
+{
+  "name": "ht",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "dependencies": {
+    "ecstatic": "^1.4.1",
+    "express": "^4.14.0",
+    "express-fileupload": "0.0.5",
+    "hash-files": "^1.1.1",
+    "morgan": "^1.7.0",
+    "pug": "^2.0.0-beta3",
+    "socket.io": "^1.4.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

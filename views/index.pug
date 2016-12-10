@@ -1,0 +1,169 @@
+doctype html
+html
+    head
+        title= title
+        meta(charset="utf-8")
+        link(rel="stylesheet",href="/css/pdf-slide.css")
+        style.
+            .controls {
+                position: absolute;
+                bottom: 1em;
+                right: 1em;
+                opacity:0.3;
+                transition: all 1s;
+            }
+
+            .controls:hover {
+                opacity:1;
+            }
+            .controls .arrow {
+                width: 0;
+                height: 0;
+                border: 4em solid #71E9F4;
+                float: left;
+                margin-right: 1em;
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+            }
+            .controls .prev {
+                border-top-color: transparent;
+                border-right-width: 4em;
+                border-bottom-color: transparent;
+                border-left: 0 transparent;
+            }
+            .controls .next {
+                border-top-color: transparent;
+                border-right: 0 transparent;
+                border-bottom-color: transparent;
+                border-left-width: 4em;
+            }
+            .controls .prev:hover {
+                border-right-color: #13DAEC;
+                cursor: pointer;
+            }
+            .controls .next:hover {
+                border-left-color: #13DAEC;
+                cursor: pointer;
+            }
+    body
+        #pdf-container.pdf-page
+        .controls
+            #js-prev.arrow.prev
+            #js-next.arrow.next
+    script(src="/socket.io/socket.io.js")
+    script(src="/js/PDFJSController.js")
+    script.
+        var pdf="#{file}";
+
+        var socket = io.connect('', {query: 'file=' + pdf});
+
+        socket.on('connect', function(){
+            setup();
+        });
+
+
+
+        function setup(){
+            
+            
+            var container = document.getElementById('pdf-container');
+            controller = new PDFJSController({
+                container: container,
+                pdfjsDistDir: "/pdfjs-dist/"
+            });
+            var PDFURL = '/pdf/' + pdf + ".pdf";
+
+            controller.loadDocument(PDFURL).then(initializedEvent).catch(function (error) {
+                console.error(error);
+            });
+        }
+
+
+        function getCornerColor(context) {
+            var canvasColor = context.getImageData(0, 0, 1, 1);
+            var pixels = canvasColor.data;
+            var r = pixels[0];
+            var g = pixels[1];
+            var b = pixels[2];
+            return "rgb(" + r + ',' + g + ',' + b + ")";
+        }
+    - if (controller)
+        script.
+            function initializedEvent() {
+                document.getElementById('js-prev').addEventListener('click', function(){
+                   var prevReturn = controller.prevPage();
+                   if(prevReturn){
+                    socket.emit('move',controller.pageNum);
+                   }
+                });
+                document.getElementById('js-next').addEventListener('click', function(){
+                    var nextReturn = controller.nextPage();
+                    if(nextReturn) {
+                        socket.emit('move',controller.pageNum);
+                    }
+                });
+
+                window.addEventListener("resize", function (event) {
+                    controller.fitItSize();
+                });
+                document.onkeydown = function (event) {
+                    var kc = event.keyCode;
+                    if (event.shiftKey || event.ctrlKey || event.metaKey) {
+                        return;
+                    }
+                    if (kc === 37 || kc === 40 || kc === 75 || kc === 65) {
+                        // left, down, K, A
+                        event.preventDefault();
+                        var prevReturn = controller.prevPage();
+                        if(prevReturn){
+                            socket.emit('move',controller.pageNum);
+                        }
+                        
+                    } else if (kc === 38 || kc === 39 || kc === 74 || kc === 83) {
+                        // up, right, J, S
+                        event.preventDefault();
+                        var nextReturn = controller.nextPage();
+                        if(nextReturn){
+                            socket.emit('move',controller.pageNum);
+                        }
+                    }
+
+                };
+            }
+    - else
+        script.
+            socket.on('move', function(page){
+                controller._queueRenderPage(page);
+                controller.pageNum = page;
+            });
+            function initializedEvent() {
+                document.getElementById('js-prev').addEventListener('click', controller.prevPage.bind(controller));
+                document.getElementById('js-next').addEventListener('click', controller.nextPage.bind(controller));
+
+                window.addEventListener("resize", function (event) {
+                    controller.fitItSize();
+                });
+                document.onkeydown = function (event) {
+                    var kc = event.keyCode;
+                    if (event.shiftKey || event.ctrlKey || event.metaKey) {
+                        return;
+                    }
+                    if (kc === 37 || kc === 40 || kc === 75 || kc === 65) {
+                        // left, down, K, A
+                        event.preventDefault();
+                        controller.prevPage();
+                    } else if (kc === 38 || kc === 39 || kc === 74 || kc === 83) {
+                        // up, right, J, S
+                        event.preventDefault();
+                        controller.nextPage();
+                    }
+
+                };
+            }
+    
+
+
+

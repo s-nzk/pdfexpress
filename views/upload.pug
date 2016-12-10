@@ -1,0 +1,81 @@
+doctype html
+html
+    head
+        title PDF Express
+        meta(charset="utf-8")
+        link(href="http://fonts.googleapis.com/css?family=Roboto:400,300,500,300italic|Inconsolata:400,700" rel="stylesheet")
+        style.
+            div {
+                box-sizing:border-box;
+                text-align:center;
+                margin:2rem 0;
+            }
+            #dropzone{
+                max-width:720px;
+                min-height:200px;
+                margin-left:auto;
+                margin-right:auto;
+                border: 2px dashed #0087F7
+            }
+            .dz-drag-hover{
+                background-color:#666;
+                transition: all  0.3s ease;
+            }
+            .zone{
+               
+                cursor:pointer;
+            }
+            #urldiv{
+                font-size:1.2rem;
+            }
+            body{
+                background-color:#eee;
+                font-family: Roboto, "Open Sans", sans-serif;
+                font-weight:300;
+                font-size:20px;
+            }
+        script(src="/js/dropzone.js")
+
+    body
+        #dropzone
+            .zone
+                span drop here!
+        #urldiv(style="display:none")
+            div 
+                h3 URL
+                div ■Control
+                a#controll
+            div
+                div ■Viewer
+                a#viewer
+    script.
+        var myDropzone = new Dropzone("div#dropzone", {
+        url: "/upload",
+        maxFiles: 1,
+        acceptedFiles:"application/pdf"
+        });
+        myDropzone.on("complete", function(file) {
+            if(file.status === "success"){
+                var hash = JSON.parse(file.xhr.response).hash;
+                var dropzone = document.getElementById('dropzone');
+                dropzone.style.display = 'none';
+
+                var urldiv = document.getElementById('urldiv');
+                urldiv.style.display = 'block';
+
+                var controll = document.getElementById('controll');
+                var viewer = document.getElementById('viewer');
+
+               
+                var url = '/' + hash;
+                var controll_url = url +'?controller=true';
+                controll.href  = controll_url;
+                controll.innerText = controll_url;
+                controll.target = '_blank';
+                viewer.href = url;
+                viewer.innerText = url;
+                viewer.target = '_blank';
+
+            }
+            myDropzone.removeFile(file);
+        });
