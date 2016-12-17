@@ -21,31 +21,31 @@ app.set('view engine', 'pug');
 
 
 app.get('/', (req, res) => {
-	  res.render('upload');
+    res.render('upload');
 });
 
 app.post('/upload', (req, res) => {
-	if (!req.files) {
-		res.send('No files were uploaded.');
-		return;
-	}
-	var file = req.files.file;
-	const sha256 = crypto.createHash('sha256');
-	sha256.update(file.data);
-	const hash = sha256.digest('hex').slice(0,10)
-	const file_dir = __dirname + '/public/pdf/' + hash + '.pdf';
-	console.log('upload=' + file_dir);
-	if(!fs.existsSync(file_dir)){
-		file.mv(file_dir, (err) => {
-			if(err){
-				res.status(500).send(err);
-			} else {
-				res.send({hash: hash});
-			}
-		});
-	} else {
-		res.send({hash: hash});
-	}
+  if (!req.files) {
+    res.send('No files were uploaded.');
+    return;
+  }
+  var file = req.files.file;
+  const sha256 = crypto.createHash('sha256');
+  sha256.update(file.data);
+  const hash = sha256.digest('hex').slice(0,10)
+  const file_dir = __dirname + '/public/pdf/' + hash + '.pdf';
+  console.log('upload=' + file_dir);
+  if(!fs.existsSync(file_dir)){
+    file.mv(file_dir, (err) => {
+      if(err){
+        res.status(500).send(err);
+      } else {
+        res.send({hash: hash});
+      }
+    });
+  } else {
+    res.send({hash: hash});
+  }
 });
 
 
@@ -60,19 +60,22 @@ server.listen(port, () =>  {
 
 
 io.on('connection', (socket) => {
-	const file = socket.handshake.query.file;
-	socket.join(file);
+  const file = socket.handshake.query.file;
+  socket.join(file);
     socket.on('move', (page) => {
          socket.broadcast.to(file).emit('move', page);
     });
     socket.on('message', (message) => {
-    	//高さをランダムに計算
-    	//表示する秒数もランダム
-    	var top = Math.floor( Math.random() * 100 );
-    	var marqueeSec = Math.floor( Math.random() * 12 );
-    	if(marqueeSec <= 6) {
-    		marqueeSec = 6
-    	}
-    	io.to(file).emit('message', {text: message, top: top, sec: marqueeSec});
+      //高さをランダムに計算
+      //表示する秒数もランダム
+      var top = Math.floor( Math.random() * 100 );
+      if(top >= 90){
+        top = 90;
+      }
+      var marqueeSec = Math.floor( Math.random() * 12 );
+      if(marqueeSec <= 6) {
+        marqueeSec = 6
+      }
+      io.to(file).emit('message', {text: message, top: top, sec: marqueeSec});
     });
 });
