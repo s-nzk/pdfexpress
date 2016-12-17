@@ -1,5 +1,5 @@
 
-
+'use strict'
 const express = require('express');
 const fileUpload = require('express-fileupload');
 const morgan = require('morgan')
@@ -20,11 +20,11 @@ app.set('views', __dirname + '/views')
 app.set('view engine', 'pug');
 
 
-app.get('/', function(req, res){
+app.get('/', (req, res) => {
 	  res.render('upload');
 });
 
-app.post('/upload', function(req, res){
+app.post('/upload', (req, res) => {
 	if (!req.files) {
 		res.send('No files were uploaded.');
 		return;
@@ -36,7 +36,7 @@ app.post('/upload', function(req, res){
 	const file_dir = __dirname + '/public/pdf/' + hash + '.pdf';
 	console.log('upload=' + file_dir);
 	if(!fs.existsSync(file_dir)){
-		file.mv(file_dir, function(err){
+		file.mv(file_dir, (err) => {
 			if(err){
 				res.status(500).send(err);
 			} else {
@@ -49,24 +49,30 @@ app.post('/upload', function(req, res){
 });
 
 
-app.get('/:file', function (req, res) {
+app.get('/:file', (req, res) =>  {
   res.render('index',{file: req.params.file, controller: Boolean(req.query.controller)});
 });
 
 let port = process.env.PORT || 8000;
-server.listen(port, function () {
+server.listen(port, () =>  {
   console.log(`Example app listening on port ${port}!`);
 });
 
 
-io.on('connection', function(socket){
-
-
+io.on('connection', (socket) => {
 	const file = socket.handshake.query.file;
-
 	socket.join(file);
-    socket.on('move', function(page){
+    socket.on('move', (page) => {
          socket.broadcast.to(file).emit('move', page);
     });
- 
+    socket.on('message', (message) => {
+    	//高さをランダムに計算
+    	//表示する秒数もランダム
+    	var top = Math.floor( Math.random() * 100 );
+    	var marqueeSec = Math.floor( Math.random() * 12 );
+    	if(marqueeSec <= 6) {
+    		marqueeSec = 6
+    	}
+    	io.to(file).emit('message', {text: message, top: top, sec: marqueeSec});
+    });
 });
