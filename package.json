@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "dependencies": {
-    "ecstatic": "^1.4.1",
+    "ecstatic": "^4.1.4",
     "express": "^4.14.0",
     "express-fileupload": "0.0.5",
     "hash-files": "^1.1.1",
